@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
-import { Activity, ArrowDownToLine, ArrowRight, CalendarDays, Cloud, Globe2, Layers3, Wallet, type LucideIcon } from 'lucide-react'
-import { BackButton, ResourceTable } from './ResourceTable'
-import { AccountMenu, Brand, Picker } from './ui'
+import { Activity, ArrowDownToLine, ArrowRight, CalendarDays, Cloud, Globe2, Layers3, LogOut, Wallet, type LucideIcon } from 'lucide-react'
+import { ResourceTable } from './ResourceTable'
+import { Brand, Picker } from './ui'
 import { configurationError, demo, demoDate, demoResources, exportCsv, getResources, integer, isActive, money, supabase, totalCost, type Resource } from './data'
 
 const pages = ['Overview', 'Resources', 'Cost analysis'] as const
@@ -15,17 +15,25 @@ function message(error: unknown, fallback: string) {
   return fallback
 }
 
-function callbackError() {
+function readAuthCallback() {
   const url = new URL(window.location.href)
   const hash = new URLSearchParams(url.hash.slice(1))
-  if (!url.searchParams.has('error') && !hash.has('error')) return ''
-  for (const parameter of ['error', 'error_code', 'error_description']) {
-    url.searchParams.delete(parameter)
-    hash.delete(parameter)
+  const read = (key: string) => url.searchParams.get(key) ?? hash.get(key)
+  return { code: read('code'), error: read('error'), errorCode: read('error_code') }
+}
+
+function clearAuthCallback() {
+  const url = new URL(window.location.href)
+  const hash = new URLSearchParams(url.hash.slice(1))
+  let changed = false
+  for (const key of ['code', 'error', 'error_code', 'error_description']) {
+    if (url.searchParams.has(key) || hash.has(key)) changed = true
+    url.searchParams.delete(key)
+    hash.delete(key)
   }
-  url.hash = hash.toString()
+  if (!changed) return
+  if (hash.size === 0 || url.hash.includes('=')) url.hash = hash.toString()
   window.history.replaceState(window.history.state, '', url)
-  return 'Google sign-in was interrupted. Please try again.'
 }
 
 export default function App() {
@@ -33,21 +41,38 @@ export default function App() {
   const [initializing, setInitializing] = useState(Boolean(supabase))
   const [authError, setAuthError] = useState(configurationError)
   const [signInPending, setSignInPending] = useState(false)
-  const [openLogin, setOpenLogin] = useState(false)
+  const [signOutPending, setSignOutPending] = useState(false)
+  const [inDemo, setInDemo] = useState(false)
 
   useEffect(() => {
     if (!supabase) return
-    const redirectError = callbackError()
-    if (redirectError) setAuthError(redirectError)
+    const { auth } = supabase
+    const callback = readAuthCallback()
     let active = true
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: { subscription } } = auth.onAuthStateChange((_event, next) => {
       if (active) setSession(next)
     })
-    supabase.auth.getSession().then(({ error }) => {
-      if (active && error) setAuthError(error.message)
-    }).catch(error => {
+    async function restoreSession() {
+      const { error: initializationError } = await auth.initialize()
+      const { data, error } = await auth.getSession()
+      if (!active) return
+      if (callback.error === 'access_denied' || callback.errorCode === 'access_denied') {
+        setAuthError('Google sign-in was cancelled or denied. Please try again.')
+      } else if (initializationError || error) {
+        setAuthError(`Couldn't complete sign-in. ${(initializationError ?? error)?.message}`)
+      } else if (callback.code && !data.session) {
+        setAuthError('This sign-in link expired or was opened in a different browser. Start sign-in again from this tab.')
+      } else if (callback.error || callback.errorCode) {
+        setAuthError('Google sign-in could not finish. Check the Google provider and redirect URL in Supabase.')
+      }
+    }
+    restoreSession().catch(error => {
       if (active) setAuthError(message(error, 'The sign-in session could not be loaded.'))
-    }).finally(() => { if (active) setInitializing(false) })
+    }).finally(() => {
+      if (!active) return
+      if (callback.code || callback.error || callback.errorCode) clearAuthCallback()
+      setInitializing(false)
+    })
     return () => { active = false; subscription.unsubscribe() }
   }, [])
 
@@ -58,7 +83,7 @@ export default function App() {
   }, [])
 
   async function signIn() {
-    if (!supabase) return
+    if (!supabase || signInPending) return
     setSignInPending(true)
     setAuthError('')
     try {
@@ -73,30 +98,31 @@ export default function App() {
     }
   }
 
-  async function accountAction() {
-    if (!supabase) { setOpenLogin(true); return }
+  async function signOut() {
+    if (!supabase || signOutPending) return
+    setSignOutPending(true)
     setAuthError('')
     try {
       const { error } = await supabase.auth.signOut({ scope: 'local' })
       if (error) throw error
     } catch (error) {
       setAuthError(message(error, 'Sign-out failed. Please try again.'))
+    } finally {
+      setSignOutPending(false)
     }
   }
 
   if (initializing) return <div className="initializing" role="status"><Cloud size={28} /> Restoring your session…</div>
-  if ((demo && openLogin) || (!demo && !session)) {
-    return <Login error={authError} onSignIn={signIn} pending={signInPending} onBack={demo ? () => setOpenLogin(false) : undefined} />
+  if (!session && !inDemo) {
+    return <Login error={authError} onSignIn={signIn} pending={signInPending} onDemo={demo ? () => setInDemo(true) : undefined} />
   }
-  const email = session?.user.email
-  const profileName = session?.user.user_metadata.full_name
-  const name = demo ? 'Demo User' : (typeof profileName === 'string' && profileName.trim()) || email || 'CloudLedger user'
-  return <Dashboard key={session?.user.id ?? 'demo'} name={name} email={email} onAccount={accountAction} authError={authError} />
+  return <Dashboard key={session?.user.id ?? 'demo'} email={session?.user.email}
+    onExit={inDemo ? () => setInDemo(false) : signOut} signOutPending={signOutPending} authError={authError} />
 }
 
-function Login({ error, onSignIn, pending, onBack }: { error: string; onSignIn: () => void; pending: boolean; onBack?: () => void }) {
+function Login({ error, onSignIn, pending, onDemo }: { error: string; onSignIn: () => void; pending: boolean; onDemo?: () => void }) {
   return <main className="login-screen">
-    <div className="login-brand">{onBack ? <Brand onClick={onBack} /> : <span className="brand"><span className="brand-mark"><Cloud size={21} /></span>CloudLedger<span className="brand-period">.</span></span>}</div>
+    <div className="login-brand"><span className="brand"><span className="brand-mark"><Cloud size={21} /></span>CloudLedger<span className="brand-period">.</span></span></div>
     <section className="panel login-panel">
       <span className="login-symbol"><Cloud size={28} /></span>
       <h1>Welcome to CloudLedger</h1>
@@ -105,13 +131,18 @@ function Login({ error, onSignIn, pending, onBack }: { error: string; onSignIn: 
       <button className="button google-button" onClick={onSignIn} disabled={!supabase || pending}>
         <strong aria-hidden="true">G</strong>{pending ? 'Connecting to Google…' : 'Continue with Google'}<ArrowRight size={16} />
       </button>
-      {demo && <p className="login-hint">Connect a Supabase project to enable Google sign-in.</p>}
-      {onBack && <BackButton onClick={onBack} />}
+      {!supabase && <p className="login-hint">Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> in <code>.env.local</code>, then restart Vite to enable Google sign-in.</p>}
+      {onDemo && <button className="button button-quiet" onClick={onDemo}>Explore demo <ArrowRight size={15} /></button>}
     </section>
   </main>
 }
 
-function Dashboard({ name, email, onAccount, authError }: { name: string; email?: string; onAccount: () => void; authError: string }) {
+function Dashboard({ email, onExit, signOutPending, authError }: {
+  email?: string
+  onExit: () => void
+  signOutPending: boolean
+  authError: string
+}) {
   const [page, setPage] = useState<Page>('Overview')
   const [months, setMonths] = useState('6')
   const [resources, setResources] = useState<Resource[]>(demo ? demoResources : [])
@@ -155,8 +186,11 @@ function Dashboard({ name, email, onAccount, authError }: { name: string; email?
         <Brand onClick={() => navigate('Overview')} />
         <nav aria-label="Main navigation">{pages.map(item => <button key={item} onClick={() => navigate(item)} aria-current={page === item ? 'page' : undefined}>{item}</button>)}</nav>
         <div className="workspace">
-          <span className="workspace-label"><i />{demo ? 'Demo workspace' : 'Live workspace'}</span>
-          <AccountMenu name={name} email={email} onAction={onAccount} demo={demo} />
+          {demo ? <span className="workspace-label"><i />Demo workspace</span>
+            : email && <span className="account-email" title={email}>{email}</span>}
+          <button className="button session-button" onClick={onExit} disabled={signOutPending}>
+            <LogOut size={15} /> {demo ? 'Exit demo' : signOutPending ? 'Signing out…' : 'Sign out'}
+          </button>
         </div>
       </div>
     </header>

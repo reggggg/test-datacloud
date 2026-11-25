@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { amount, calendarDate, exportCsv, integer, isActive, money, textValue, type Resource } from './data'
 import { Picker, ResourceIcon } from './ui'
 
@@ -80,8 +80,4 @@ export function ResourceTable({ resources, compact, onViewAll }: {
       </div>
     </div>}
   </section>
-}
-
-export function BackButton({ onClick }: { onClick: () => void }) {
-  return <button className="button button-quiet" onClick={onClick}><ArrowLeft size={15} /> Back to dashboard</button>
 }

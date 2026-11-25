@@ -1,4 +1,3 @@
-import * as Dropdown from '@radix-ui/react-dropdown-menu'
 import * as Select from '@radix-ui/react-select'
 import { Check, ChevronDown, Cloud, Database, HardDrive, Network, Server } from 'lucide-react'
 import type { ReactNode } from 'react'
@@ -32,25 +31,6 @@ export function Picker({ label, value, onChange, options, icon }: {
       </Select.Content>
     </Select.Portal>
   </Select.Root>
-}
-
-export function AccountMenu({ name, email, onAction, demo }: {
-  name: string
-  email?: string
-  onAction: () => void
-  demo: boolean
-}) {
-  return <Dropdown.Root>
-    <Dropdown.Trigger className="account-trigger" aria-label="Workspace account">
-      <span className="avatar">{name.split(/\s+/).slice(0, 2).map(word => word[0]).join('').toUpperCase()}</span>
-      <ChevronDown size={13} />
-    </Dropdown.Trigger>
-    <Dropdown.Portal><Dropdown.Content className="popover account-popover" align="end" sideOffset={10}>
-      <Dropdown.Label className="account-label"><strong>{name}</strong>{email && <small>{email}</small>}</Dropdown.Label>
-      <Dropdown.Separator className="separator" />
-      <Dropdown.Item className="popover-item" onSelect={onAction}>{demo ? 'Open sign-in page' : 'Sign out'}</Dropdown.Item>
-    </Dropdown.Content></Dropdown.Portal>
-  </Dropdown.Root>
 }
 
 export function ResourceIcon({ type }: { type: string }) {
