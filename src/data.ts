@@ -7,7 +7,7 @@ export type Resource = {
   region: string | null
   monthly_cost: number | string | null
   status: string | null
-  created_at: string | null
+  created_at?: string | null
 }
 
 // This publishable key is intended for the browser. Supabase RLS controls data access.
@@ -46,16 +46,30 @@ export async function getResources(signal: AbortSignal): Promise<Resource[]> {
   const client = supabase
   const resources: Resource[] = []
   const pageSize = 100
+  const columns = 'resource_key,resource_type,service_name,region,monthly_cost,status'
+  let includeCreatedAt = true
   let total = Infinity
-  while (resources.length < total) {
-    const from = resources.length
-    const { data, error, count } = await client.from('cloud_sample_resources')
-      .select('resource_key,resource_type,service_name,region,monthly_cost,status,created_at',
-        from === 0 ? { count: 'exact' } : undefined)
-      .order('created_at', { ascending: false, nullsFirst: false })
+  function readPage(from: number) {
+    const query = client.from('cloud_sample_resources').select(
+      includeCreatedAt ? `${columns},created_at` : columns,
+      from === 0 ? { count: 'exact' } : undefined,
+    )
+    if (includeCreatedAt) query.order('created_at', { ascending: false, nullsFirst: false })
+    return query
       .order('resource_key')
       .range(from, from + pageSize - 1)
       .abortSignal(signal)
+      .overrideTypes<Resource[], { merge: false }>()
+  }
+
+  while (resources.length < total) {
+    const from = resources.length
+    let page = await readPage(from)
+    if (from === 0 && page.error?.code === '42703' && /\bcreated_at\b/i.test(page.error.message)) {
+      includeCreatedAt = false
+      page = await readPage(from)
+    }
+    const { data, error, count } = page
     if (error) throw error
     if (count !== null) total = count
     if (!data.length) break
@@ -108,11 +122,16 @@ export const demoResources: Resource[] = fixtures.map(
     ({ resource_key, resource_type, service_name, region, monthly_cost, status, created_at }),
 )
 
+export function resourceCreationTime(resource: Resource, now: Date) {
+  const created = resource.created_at ? Date.parse(resource.created_at) : NaN
+  return created <= now.getTime() ? created : NaN
+}
+
 export function costByMonth(resources: Resource[], months: number, now: Date) {
   const label = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' })
   const monthEnd = (offset: number) => Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offset, 1)
   const dated = resources.flatMap(resource => {
-    const created = resource.created_at ? Date.parse(resource.created_at) : NaN
+    const created = resourceCreationTime(resource, now)
     return Number.isFinite(created) ? [{ created, cost: amount(resource) }] : []
   }).sort((left, right) => left.created - right.created)
   let index = 0
@@ -120,7 +139,7 @@ export function costByMonth(resources: Resource[], months: number, now: Date) {
   return Array.from({ length: months }, (_, point) => {
     const offset = point - months + 1
     const end = monthEnd(offset + 1)
-    while (index < dated.length && dated[index].created < end && dated[index].created <= now.getTime()) {
+    while (index < dated.length && dated[index].created < end) {
       cost += dated[index].cost
       index++
     }

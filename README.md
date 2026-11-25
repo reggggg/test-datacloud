@@ -25,8 +25,8 @@ To override the project, copy `.env.example` to `.env.local` and set `VITE_SUPAB
 
 To view sample data, leave both variables in `.env.local` empty, restart Vite, and choose **Explore demo**.
 
-The app reads `resource_key`, `resource_type`, `service_name`, `region`, `monthly_cost`, `status`, and `created_at` from `public.cloud_sample_resources`. Use a unique `resource_key` for each resource so paginated reads have a stable order. No database changes are run by this app.
+The app reads `resource_key`, `resource_type`, `service_name`, `region`, `monthly_cost`, `status`, and optional `created_at` from `public.cloud_sample_resources`. Use a unique `resource_key` for each resource so paginated reads have a stable order. No database changes are run by this app.
 
 ## Reading the charts
 
-The dashboard displays costs in USD. The trend sums the current monthly cost of resources created by the end of each month, up to today for the current month. Resources with missing creation dates are excluded from the trend. Monthly cost changes and deleted resources require a historical billing dataset.
+The dashboard displays costs in USD. The trend sums the current monthly cost of resources created by the end of each month, up to today for the current month. Resources with missing creation dates are excluded from the trend. If there are no usable creation dates, the dashboard charts current monthly costs by service instead. Monthly cost changes and deleted resources require a historical billing dataset.

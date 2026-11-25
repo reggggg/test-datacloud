@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js'
 import { Activity, ArrowDownToLine, ArrowRight, CalendarDays, Cloud, Globe2, Layers3, LogOut, Wallet, type LucideIcon } from 'lucide-react'
 import { ResourceTable } from './ResourceTable'
 import { Brand, Picker } from './ui'
-import { configurationError, demo, demoDate, demoResources, exportCsv, getResources, integer, isActive, money, supabase, totalCost, type Resource } from './data'
+import { configurationError, demo, demoDate, demoResources, exportCsv, getResources, integer, isActive, money, resourceCreationTime, supabase, totalCost, type Resource } from './data'
 
 const pages = ['Overview', 'Resources', 'Cost analysis'] as const
 type Page = (typeof pages)[number]
@@ -173,6 +173,7 @@ function Dashboard({ email, onExit, signOutPending, authError }: {
   const activeCount = resources.filter(isActive).length
   const overview = page === 'Overview'
   const showCharts = page !== 'Resources'
+  const hasTrend = showCharts && resources.some(resource => Number.isFinite(resourceCreationTime(resource, now)))
   const titles: Record<Page, string> = { Overview: 'Cloud overview', Resources: 'Cloud resources', 'Cost analysis': 'Cost analysis' }
   const descriptions: Record<Page, string> = {
     Overview: 'Monitor your cloud resources, costs, and regional footprint.',
@@ -198,7 +199,7 @@ function Dashboard({ email, onExit, signOutPending, authError }: {
       <div className="page-heading">
         <div><h1>{titles[page]}</h1><p>{descriptions[page]}</p></div>
         <div className="page-actions">
-          {showCharts && <Picker label="Cost trend range" value={months} onChange={setMonths} options={periods} icon={<CalendarDays size={16} />} />}
+          {hasTrend && <Picker label="Cost trend range" value={months} onChange={setMonths} options={periods} icon={<CalendarDays size={16} />} />}
           <button className="button button-primary" onClick={() => exportCsv(resources)} disabled={loading || Boolean(loadError) || !resources.length}><ArrowDownToLine size={16} /> Export CSV</button>
         </div>
       </div>
@@ -212,8 +213,13 @@ function Dashboard({ email, onExit, signOutPending, authError }: {
             <Metric label="Active resources" value={integer.format(activeCount)} detail={`${resources.length ? Math.round(activeCount / resources.length * 100) : 0}% of total resources`} icon={Activity} tone="green" />
             <Metric label="Regions" value={integer.format(regionCount)} detail="With resources deployed" icon={Globe2} tone="blue" />
           </div>}
-          {showCharts && <Suspense fallback={<div className="panel feedback" role="status">Loading charts…</div>}>
-            <Charts resources={resources} months={Number(months)} now={now} />
+          {!demo && !resources.length && <section className="panel feedback" role="status">
+            <strong>No resources returned by Supabase</strong>
+            <p>If the table contains rows, check that its SELECT policy allows your signed-in account to read them.</p>
+            <button className="button" onClick={() => setAttempt(value => value + 1)}>Try again</button>
+          </section>}
+          {showCharts && resources.length > 0 && <Suspense fallback={<div className="panel feedback" role="status">Loading charts…</div>}>
+            <Charts resources={resources} months={Number(months)} now={now} hasTrend={hasTrend} />
           </Suspense>}
           {page !== 'Cost analysis' && <ResourceTable key={page} resources={resources} compact={overview} onViewAll={() => navigate('Resources')} />}
         </>}
