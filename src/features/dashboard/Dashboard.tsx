@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
-import { Activity, ArrowDownToLine, CalendarDays, Globe2, Layers3, LogOut, Wallet, type LucideIcon } from 'lucide-react'
+import { Activity, ArrowDownToLine, CalendarDays, Globe2, Layers3, LogOut, Target, Wallet, type LucideIcon } from 'lucide-react'
 import { Brand, Picker } from '../../components/ui'
 import { demo } from '../../lib/supabase'
 import { demoDate } from './demoResources'
@@ -15,9 +15,10 @@ type Page = (typeof pages)[number]
 const periods = [3, 6, 12].map(value => ({ value: String(value), label: `Last ${value} months` }))
 const Charts = lazy(() => import('./Charts'))
 
-export function Dashboard({ email, onExit, signOutPending, authError }: {
+export default function Dashboard({ email, onExit, onOpenAudience, signOutPending, authError }: {
   email?: string
   onExit: () => void
+  onOpenAudience: () => void
   signOutPending: boolean
   authError: string
 }) {
@@ -50,6 +51,7 @@ export function Dashboard({ email, onExit, signOutPending, authError }: {
           </button>)}
         </nav>
         <div className="workspace">
+          <button className="button button-quiet session-button" onClick={onOpenAudience}><Target size={15} /> Psychographics</button>
           {demo ? <span className="workspace-label"><i />Demo workspace</span>
             : email && <span className="account-email" title={email}>{email}</span>}
           <button className="button session-button" onClick={onExit} disabled={signOutPending}>

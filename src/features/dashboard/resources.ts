@@ -1,3 +1,5 @@
+import { downloadCsv } from '../../lib/csv'
+
 export type Resource = {
   resource_key: string
   resource_type: string | null
@@ -46,20 +48,9 @@ export function costByMonth(resources: Resource[], months: number, now: Date) {
 
 export function exportCsv(resources: Resource[]) {
   const columns: (keyof Resource)[] = ['resource_key', 'resource_type', 'service_name', 'region', 'monthly_cost', 'status', 'created_at']
-  const cell = (value: Resource[keyof Resource]) => {
-    let text = String(value ?? '')
-    if (typeof value === 'string' && /^[\s]*[=+@-]|^[\t\r\n]/.test(text)) text = "'" + text
-    return '"' + text.replaceAll('"', '""') + '"'
-  }
   const rows = resources.map(resource => columns.map(column => {
     const value = resource[column]
-    return cell(column === 'monthly_cost' && value != null ? amount(resource) : value)
-  }).join(','))
-  const csv = [columns.join(','), ...rows].join('\r\n')
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'cloud-ledger-resources.csv'
-  link.click()
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+    return column === 'monthly_cost' && value != null ? amount(resource) : value
+  }))
+  downloadCsv('cloud-ledger-resources.csv', columns, rows)
 }
