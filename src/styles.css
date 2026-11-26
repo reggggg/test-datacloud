@@ -127,8 +127,6 @@ td.date-cell { color: var(--muted); }
 
 .login-screen { min-height: 100dvh; display: grid; place-items: center; padding: 94px 18px 40px; background: radial-gradient(ellipse at 48% 40%, #f9e8db 0, #f7f6f1 66%); }
 .login-brand { position: absolute; top: 28px; left: max(22px, calc((100vw - 1280px)/2)); }
-.login-brand > span.brand { gap: 0; }
-.login-brand > span.brand .brand-mark { margin-right: 10px; }
 .login-panel { width: min(100%, 470px); padding: 40px 36px 34px; display: grid; justify-items: center; gap: 16px; text-align: center; }
 .login-symbol { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 15px; background: #fae9dd; color: var(--accent); }
 .login-panel h1 { font-size: clamp(26px, 5vw, 34px); }

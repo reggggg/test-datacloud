@@ -1,7 +1,7 @@
 import { useId, useMemo } from 'react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartNoAxesCombined, CircleHelp } from 'lucide-react'
-import { amount, costByMonth, money, textValue, type Resource } from './data'
+import { amount, costByMonth, money, textValue, type Resource } from './resources'
 
 const colors = ['#d9592e', '#eca17d', '#eecbb2', '#5f6954', '#7d6d8e', '#6d8798']
 const axisMoney = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 })

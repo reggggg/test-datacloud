@@ -1,12 +1,15 @@
 import * as Select from '@radix-ui/react-select'
-import { Check, ChevronDown, Cloud, Database, HardDrive, Network, Server } from 'lucide-react'
+import { Check, ChevronDown, Cloud } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-export function Brand({ onClick }: { onClick: () => void }) {
-  return <button className="brand" onClick={onClick} aria-label="CloudLedger home">
+export function Brand({ onClick }: { onClick?: () => void }) {
+  const content = <>
     <span className="brand-mark"><Cloud size={21} strokeWidth={2.2} /></span>
     <span>CloudLedger<span className="brand-period">.</span></span>
-  </button>
+  </>
+  return onClick
+    ? <button className="brand" onClick={onClick} aria-label="CloudLedger home">{content}</button>
+    : <span className="brand">{content}</span>
 }
 
 export function Picker({ label, value, onChange, options, icon }: {
@@ -31,14 +34,4 @@ export function Picker({ label, value, onChange, options, icon }: {
       </Select.Content>
     </Select.Portal>
   </Select.Root>
-}
-
-export function ResourceIcon({ type }: { type: string }) {
-  const normalized = type.toLowerCase()
-  const [Icon, tone] = normalized === 'compute' ? [Server, 'peach']
-    : normalized === 'database' ? [Database, 'violet']
-    : normalized === 'storage' ? [HardDrive, 'green']
-    : normalized === 'networking' ? [Network, 'blue']
-    : [Cloud, 'neutral']
-  return <span className={`resource-icon ${tone}`}><Icon size={16} /></span>
 }

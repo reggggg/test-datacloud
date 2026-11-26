@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Search } from 'lucide-react'
-import { amount, calendarDate, exportCsv, integer, isActive, money, textValue, type Resource } from './data'
-import { Picker, ResourceIcon } from './ui'
+import { ArrowDown, ArrowRight, ArrowUp, ChevronLeft, ChevronRight, Cloud, Database, HardDrive, Network, Search, Server } from 'lucide-react'
+import { amount, calendarDate, exportCsv, integer, isActive, money, textValue, type Resource } from './resources'
+import { Picker } from '../../components/ui'
 
 const PAGE_SIZE = 10
 type Sort = 'recent' | 'cost-asc' | 'cost-desc'
@@ -80,4 +80,14 @@ export function ResourceTable({ resources, compact, onViewAll }: {
       </div>
     </div>}
   </section>
+}
+
+function ResourceIcon({ type }: { type: string }) {
+  const normalized = type.toLowerCase()
+  const [Icon, tone] = normalized === 'compute' ? [Server, 'peach']
+    : normalized === 'database' ? [Database, 'violet']
+    : normalized === 'storage' ? [HardDrive, 'green']
+    : normalized === 'networking' ? [Network, 'blue']
+    : [Cloud, 'neutral']
+  return <span className={`resource-icon ${tone}`}><Icon size={16} /></span>
 }
