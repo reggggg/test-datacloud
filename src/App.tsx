@@ -2,10 +2,10 @@ import { lazy, Suspense, useState } from 'react'
 import { Cloud } from 'lucide-react'
 import { Login } from './features/auth/Login'
 import { useAuth } from './features/auth/useAuth'
+import Psychographics from './features/psychographics/Psychographics'
 import { demo } from './lib/supabase'
 
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'))
-const Psychographics = lazy(() => import('./features/psychographics/Psychographics'))
 
 export default function App() {
   const { session, initializing, authError, canSignIn, signInPending, signOutPending, signIn, signOut } = useAuth()
@@ -36,9 +36,10 @@ export default function App() {
     signOutPending,
     authError,
   }
+  if (workspace === 'audience') {
+    return <Psychographics key={key} {...workspaceProps} onOpenCloud={() => openWorkspace('cloud')} />
+  }
   return <Suspense fallback={<div className="initializing" role="status">Loading workspace…</div>}>
-    {workspace === 'audience'
-      ? <Psychographics key={key} {...workspaceProps} onOpenCloud={() => openWorkspace('cloud')} />
-      : <Dashboard key={key} {...workspaceProps} onOpenAudience={() => openWorkspace('audience')} />}
+    <Dashboard key={key} {...workspaceProps} onOpenAudience={() => openWorkspace('audience')} />
   </Suspense>
 }
