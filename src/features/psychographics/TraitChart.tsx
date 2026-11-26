@@ -7,13 +7,10 @@ type Props = {
   showOverlap: boolean
 }
 
-export function TraitChart({ groups, colors, showOverlap }: Props) {
-  const maxIndex = groups.reduce((max, group) =>
-    group.measurements.reduce((largest, row) => Math.max(largest, Math.abs(row.index_pct)), max), 0)
-  const step = maxIndex > 100 ? 10 ** Math.floor(Math.log10(maxIndex)) / 2 : 25
-  const limit = Math.max(step, Math.ceil(maxIndex / step) * step)
-  const ticks = [-limit, -limit / 2, 0, limit / 2, limit]
+const indexLimit = 100
+const indexTicks = [-indexLimit, -indexLimit / 2, 0, indexLimit / 2, indexLimit]
 
+export function TraitChart({ groups, colors, showOverlap }: Props) {
   return <div className="psy-chart-scroll" role="region" aria-label="Diverging index chart" tabIndex={0}>
     <div className={`psy-chart-layout${showOverlap ? ' with-overlap' : ''}`}>
       <div className="psy-chart-head">
@@ -27,7 +24,7 @@ export function TraitChart({ groups, colors, showOverlap }: Props) {
         <div className="psy-trait-label">{group.trait}</div>
         <div className="psy-chart-series">
           {group.measurements.map(row => {
-            const width = Math.abs(row.index_pct) / limit * 50
+            const width = Math.min(Math.abs(row.index_pct), indexLimit) / indexLimit * 50
             const negative = row.index_pct < 0
             const color = colors.get(row.segment_name) ?? '#365de8'
             const style = {
@@ -54,7 +51,7 @@ export function TraitChart({ groups, colors, showOverlap }: Props) {
       </div>)}
       <div className="psy-chart-axis">
         <span />
-        <div>{ticks.map(tick => <span key={tick}>{indexLabel(tick)}</span>)}</div>
+        <div>{indexTicks.map(tick => <span key={tick}>{indexLabel(tick)}</span>)}</div>
       </div>
     </div>
   </div>
