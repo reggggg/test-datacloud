@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { CSSProperties } from 'react'
+import * as Popover from '@radix-ui/react-popover'
 import { ArrowDownToLine, BarChart3, CalendarDays, ChevronDown, Cloud, Info, Layers3, ListFilter, LogOut, ScanLine, Search, SlidersHorizontal, Table2, Target, TrendingUp, type LucideIcon } from 'lucide-react'
 import { Picker } from '../../components/ui'
 import { demo } from '../../lib/supabase'
@@ -191,29 +191,34 @@ function SegmentPicker({ available, selected, colors, onChange }: {
   colors: Map<string, string>
   onChange: (segments: string[]) => void
 }) {
-  return <details className="psy-segment-picker" onBlur={event => {
-    if (!event.currentTarget.contains(event.relatedTarget)) event.currentTarget.open = false
-  }} onKeyDown={event => {
-    if (event.key === 'Escape' && event.currentTarget.open) {
-      event.currentTarget.open = false
-      event.currentTarget.querySelector('summary')?.focus()
-    }
-  }}>
-    <summary className="psy-button" aria-labelledby="psy-segments-label psy-selected-segment">
-      <Layers3 size={15} /><span id="psy-selected-segment">{selected.length === 1 ? selected[0] : `${selected.length} segments`}</span><ChevronDown size={14} />
-    </summary>
-    <div className="psy-segment-options">
-      <p>Select segments to compare.</p>
-      {available.map(segment => {
-        const checked = selected.includes(segment)
-        return <label key={segment}>
-          <input type="checkbox" checked={checked} disabled={checked && selected.length === 1}
-            onChange={() => onChange(checked ? selected.filter(value => value !== segment) : [...selected, segment])} />
-          <span className="psy-dot" style={{ backgroundColor: colors.get(segment) }} />{segment}
-        </label>
-      })}
-    </div>
-  </details>
+  return <Popover.Root>
+    <Popover.Trigger className="psy-button psy-segment-trigger" aria-labelledby="psy-segments-label psy-selected-segment">
+      <Layers3 size={15} />
+      <span id="psy-selected-segment">{selected.length === 1 ? selected[0] : `${selected.length} segments`}</span>
+      <ChevronDown size={14} />
+    </Popover.Trigger>
+    <Popover.Portal>
+      <Popover.Content className="psy-segment-options" aria-label="Choose audience segments" align="start" sideOffset={6} collisionPadding={12}>
+        <p>Select segments to compare, or choose one on its own.</p>
+        {available.map(segment => {
+          const checked = selected.includes(segment)
+          const onlySelected = checked && selected.length === 1
+          return <div className="psy-segment-option" key={segment}>
+            <label>
+              <input type="checkbox" checked={checked} disabled={onlySelected}
+                onChange={() => onChange(checked ? selected.filter(value => value !== segment) : [...selected, segment])} />
+              <span className="psy-dot" style={{ backgroundColor: colors.get(segment) }} />{segment}
+            </label>
+            {!onlySelected && <Popover.Close asChild>
+              <button className="psy-segment-only" type="button" aria-label={`Show only ${segment}`} onClick={() => onChange([segment])}>
+                Only
+              </button>
+            </Popover.Close>}
+          </div>
+        })}
+      </Popover.Content>
+    </Popover.Portal>
+  </Popover.Root>
 }
 
 function Summary({ label, value, detail, icon: Icon }: { label: string; value: string; detail: string; icon: LucideIcon }) {

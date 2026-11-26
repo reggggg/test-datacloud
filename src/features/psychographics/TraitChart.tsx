@@ -19,7 +19,7 @@ export function TraitChart({ groups, colors, showOverlap }: Props) {
       <div className="psy-chart-head">
         <span>Trait</span>
         <div className="psy-axis-head">
-          <span>Below baseline</span><span className="psy-baseline-tag">Network baseline</span><span>Above baseline</span>
+          <span className="psy-baseline-tag">Network baseline</span>
         </div>
         {showOverlap && <span className="psy-overlap">Overlap</span>}
       </div>

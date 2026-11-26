@@ -1,4 +1,4 @@
-.psy-workspace {
+.psy-workspace, .psy-segment-options {
   --psy-bg: #f6f7fb;
   --psy-white: #fff;
   --psy-ink: #18243c;
@@ -6,6 +6,8 @@
   --psy-line: #e2e7f0;
   --psy-accent: #365de8;
   --psy-soft: #eef2ff;
+}
+.psy-workspace {
   display: grid;
   grid-template-columns: 222px minmax(0, 1fr);
   min-height: 100dvh;
@@ -43,7 +45,7 @@
 .psy-card { min-width: 0; border: 1px solid var(--psy-line); border-radius: 12px; background: var(--psy-white); box-shadow: 0 2px 4px #16254107; }
 .psy-button, .psy-text-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; white-space: nowrap; font-size: 13px; font-weight: 600; }
 .psy-button { min-height: 36px; padding: 0 10px; border: 1px solid var(--psy-line); border-radius: 7px; color: var(--psy-ink); background: var(--psy-white); }
-.psy-button:hover:enabled, .psy-segment-picker summary:hover { background: #f4f6fc; }
+.psy-button:hover:enabled { background: #f4f6fc; }
 .psy-primary { min-height: 39px; padding-inline: 13px; background: var(--psy-accent); border-color: var(--psy-accent); color: #fff; }
 .psy-primary:hover:enabled { background: #2a4dd1; }
 .psy-text-button { border: 0; background: transparent; color: var(--psy-muted); padding: 7px 0; }
@@ -59,15 +61,16 @@
 .psy-control-group { display: grid; gap: 6px; }
 .psy-control-group > span { color: var(--psy-muted); font-size: 11px; font-weight: 650; }
 .psy-control-group .select-trigger { justify-content: space-between; }
-.psy-segment-picker { position: relative; }
-.psy-segment-picker summary { list-style: none; cursor: pointer; width: 100%; }
-.psy-segment-picker summary::-webkit-details-marker { display: none; }
-.psy-segment-picker summary > span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-.psy-segment-picker summary > svg { color: #61718e; }
-.psy-segment-options { position: absolute; z-index: 4; top: calc(100% + 6px); left: 0; min-width: max(100%, 215px); max-height: 270px; overflow: auto; padding: 6px; border: 1px solid var(--psy-line); border-radius: 8px; background: #fff; box-shadow: 0 10px 24px #192e4d23; }
+.psy-segment-trigger { min-width: 0; text-align: left; }
+.psy-segment-trigger > span { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.psy-segment-trigger > svg { color: #61718e; }
+.psy-segment-options { z-index: 4; width: max(var(--radix-popover-trigger-width), 245px); max-width: var(--radix-popover-content-available-width); max-height: min(270px, var(--radix-popover-content-available-height)); overflow: auto; padding: 6px; border: 1px solid var(--psy-line); border-radius: 8px; background: #fff; box-shadow: 0 10px 24px #192e4d23; }
 .psy-segment-options p { margin: 4px 6px 7px; font-size: 11px; color: var(--psy-muted); }
-.psy-segment-options label { display: flex; align-items: center; gap: 7px; padding: 7px 5px; border-radius: 5px; color: var(--psy-ink); font-size: 12px; cursor: pointer; }
-.psy-segment-options label:hover { background: var(--psy-soft); }
+.psy-segment-option { display: flex; align-items: center; justify-content: space-between; gap: 4px; border-radius: 5px; }
+.psy-segment-option:hover { background: var(--psy-soft); }
+.psy-segment-options label { display: flex; flex: 1; align-items: center; gap: 7px; padding: 7px 5px; color: var(--psy-ink); font-size: 12px; cursor: pointer; }
+.psy-segment-only { margin-right: 4px; padding: 4px 6px; border: 0; border-radius: 4px; background: transparent; color: #2c4fc8; font-size: 11px; font-weight: 650; }
+.psy-segment-only:hover { background: #e1e8ff; }
 .psy-segment-options input, .psy-overlap-toggle input { margin: 0; accent-color: var(--psy-accent); width: 14px; height: 14px; }
 .psy-clear { min-height: 36px; margin-left: auto; color: #3253cd; }
 
@@ -106,7 +109,7 @@
 .psy-chart-head, .psy-chart-axis { display: grid; grid-template-columns: var(--trait-col) minmax(0, 1fr) var(--overlap-col); }
 .psy-chart-head { color: var(--psy-muted); font-size: 11px; font-weight: 650; min-height: 34px; background: #f7f9fd; border-radius: 7px 7px 0 0; border-bottom: 1px solid var(--psy-line); }
 .psy-chart-head > span:first-child { align-self: center; padding-left: 8px; }
-.psy-axis-head { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; text-align: center; gap: 8px; }
+.psy-axis-head { display: grid; place-items: center; }
 .psy-baseline-tag { padding: 3px 7px; border-radius: 4px; color: #40561b; background: #e8f3cf; white-space: nowrap; }
 .psy-chart-group { display: grid; grid-template-columns: var(--trait-col) minmax(0, 1fr); border-bottom: 1px solid #edf0f6; }
 .psy-trait-label { display: flex; align-items: center; padding: 5px 9px; font-size: 12px; font-weight: 620; }
@@ -145,7 +148,6 @@
   .psy-title { align-items: flex-start; flex-wrap: wrap; margin-bottom: 16px; }
   .psy-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 11px; }
   .psy-controls .select-trigger { padding-inline: 7px; min-width: 0; font-size: 12px; }
-  .psy-segment-picker { min-width: 0; }
   .psy-clear { margin-left: 0; justify-self: start; }
   .psy-summary { gap: 6px; }
   .psy-stat { padding: 8px; gap: 5px; }
