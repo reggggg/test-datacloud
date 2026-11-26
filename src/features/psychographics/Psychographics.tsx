@@ -4,7 +4,7 @@ import { ArrowDownToLine, BarChart3, CalendarDays, ChevronDown, Cloud, Info, Lay
 import { Picker } from '../../components/ui'
 import { demo } from '../../lib/supabase'
 import { TraitChart, TraitTable } from './TraitChart'
-import { exportMeasurements, formatSnapshot, groupTraits, indexLabel, segmentColors, sortOptions, type SortOrder } from './psychographics'
+import { exportMeasurements, formatSnapshot, groupTraits, indexLabel, segmentColors, sortOptions, type SortOrder } from './measurements'
 import { usePsychographics } from './usePsychographics'
 import './psychographics.css'
 

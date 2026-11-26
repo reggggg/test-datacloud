@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { indexLabel, overlapPercent, type TraitGroup } from './psychographics'
+import { indexLabel, overlapPercent, type TraitGroup } from './measurements'
 
 type Props = {
   groups: TraitGroup[]

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { errorMessage } from '../../lib/errors'
 import { demo, supabase } from '../../lib/supabase'
-import type { Measurement } from './psychographics'
+import type { Measurement } from './measurements'
 
 type RawMeasurement = {
   [Key in 'segment_name' | 'snapshot_date' | 'trait_name' | 'category']: string | null
