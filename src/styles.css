@@ -124,6 +124,15 @@ td.date-cell { color: var(--muted); }
 .feedback p { margin: 6px 0 12px; }
 .error { background: #fff3ec; color: #873e28; border-radius: 8px; }
 .initializing { min-height: 100dvh; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--muted); }
+.loading-status { display: inline-flex; align-items: center; gap: 9px; }
+.loading-spinner { animation: loading-spin .85s linear infinite; }
+.workspace-link { text-decoration: none; }
+.psy-breadcrumb .workspace-link { color: inherit; }
+.psy-breadcrumb .workspace-link:hover { text-decoration: underline; }
+@keyframes loading-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner { animation: none; }
+}
 
 .login-screen { min-height: 100dvh; display: grid; place-items: center; padding: 94px 18px 40px; background: radial-gradient(ellipse at 48% 40%, #f9e8db 0, #f7f6f1 66%); }
 .login-brand { position: absolute; top: 28px; left: max(22px, calc((100vw - 1280px)/2)); }

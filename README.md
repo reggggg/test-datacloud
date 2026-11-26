@@ -29,6 +29,8 @@ The app reads `resource_key`, `resource_type`, `service_name`, `region`, `monthl
 
 ## Reading the charts
 
-After sign-in, the app opens CustomerPulse Psychographics. It reads `segment_name`, `snapshot_date`, `trait_name`, `category`, `index_pct`, and `overlap_pct` from `public.psychographic_breakdown`. Use one row per segment, snapshot date, and trait. Store percentages as numbers on the same scale shown in the app, so `30` displays as `30%`. An index of zero matches the network baseline. To load live rows, give authorized accounts a SELECT policy on this table, following the same policy pattern above. Use **Cloud resources** in the header to open the infrastructure dashboard.
+After sign-in, **Workspace home** at `/` links to **CloudLedger** at `/cloudledger` and **Psychographics** at `/psychographics`. Both workspaces can be opened directly. Keep the app root in the Supabase redirect allowlist. For production hosting, configure the web server to serve `index.html` for application routes such as `/cloudledger` and `/psychographics`.
+
+Psychographics reads `segment_name`, `snapshot_date`, `trait_name`, `category`, `index_pct`, and `overlap_pct` from `public.psychographic_breakdown`. Use one row per segment, snapshot date, and trait. Store percentages as numbers on the same scale shown in the app, so `30` displays as `30%`. An index of zero matches the network baseline. To load live rows, give authorized accounts a SELECT policy on this table, following the same policy pattern above.
 
 The dashboard displays costs in USD. The trend sums the current monthly cost of resources created by the end of each month, up to today for the current month. Resources with missing creation dates are excluded from the trend. If there are no usable creation dates, the dashboard charts current monthly costs by service instead. Monthly cost changes and deleted resources require a historical billing dataset.

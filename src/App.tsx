@@ -1,45 +1,62 @@
-import { lazy, Suspense, useState } from 'react'
-import { Cloud } from 'lucide-react'
+import { lazy, Suspense, useEffect, useState } from 'react'
+import { Route, Routes, useLocation, useNavigate } from 'react-router'
+import { LoadingStatus } from './components/LoadingStatus'
 import { Login } from './features/auth/Login'
 import { useAuth } from './features/auth/useAuth'
 import Psychographics from './features/psychographics/Psychographics'
+import { WorkspaceHome } from './features/workspace/WorkspaceHome'
 import { demo } from './lib/supabase'
+import { rememberSignInDestination, routes, takeSignInDestination } from './routes'
 
 const Dashboard = lazy(() => import('./features/dashboard/Dashboard'))
 
 export default function App() {
   const { session, initializing, authError, canSignIn, signInPending, signOutPending, signIn, signOut } = useAuth()
   const [inDemo, setInDemo] = useState(false)
-  const [workspace, setWorkspace] = useState<'audience' | 'cloud'>('audience')
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const signedIn = Boolean(session)
 
-  if (initializing) {
-    return <div className="initializing" role="status"><Cloud size={28} /> Restoring your session…</div>
-  }
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [pathname])
+
+  useEffect(() => {
+    if (!signedIn || initializing) return
+    const destination = takeSignInDestination()
+    if (pathname === routes.home && destination) void navigate(destination, { replace: true })
+  }, [signedIn, initializing, pathname, navigate])
+
+  if (initializing) return <LoadingStatus label="Restoring your session…" />
+
   if (!session && !inDemo) {
     return <Login
       error={authError}
-      onSignIn={signIn}
+      onSignIn={() => {
+        rememberSignInDestination(pathname)
+        void signIn()
+      }}
       pending={signInPending}
       canSignIn={canSignIn}
       onDemo={demo ? () => setInDemo(true) : undefined}
     />
   }
-  function openWorkspace(next: 'audience' | 'cloud') {
-    setWorkspace(next)
-    window.scrollTo({ top: 0 })
-  }
 
-  const key = session?.user.id ?? 'demo'
   const workspaceProps = {
     email: session?.user.email,
     onExit: inDemo ? () => setInDemo(false) : signOut,
     signOutPending,
     authError,
   }
-  if (workspace === 'audience') {
-    return <Psychographics key={key} {...workspaceProps} onOpenCloud={() => openWorkspace('cloud')} />
-  }
-  return <Suspense fallback={<div className="initializing" role="status">Loading workspace…</div>}>
-    <Dashboard key={key} {...workspaceProps} onOpenAudience={() => openWorkspace('audience')} />
-  </Suspense>
+
+  return <Routes key={session?.user.id ?? 'demo'}>
+    <Route path={routes.home} element={<WorkspaceHome {...workspaceProps} />} />
+    <Route path={routes.cloud} element={
+      <Suspense fallback={<LoadingStatus label="Loading CloudLedger…" />}>
+        <Dashboard {...workspaceProps} />
+      </Suspense>
+    } />
+    <Route path={routes.psychographics} element={<Psychographics {...workspaceProps} />} />
+    <Route path="*" element={<WorkspaceHome {...workspaceProps} notFound />} />
+  </Routes>
 }

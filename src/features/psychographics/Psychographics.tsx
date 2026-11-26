@@ -1,8 +1,11 @@
 import { useMemo, useState } from 'react'
 import * as Popover from '@radix-ui/react-popover'
 import { ArrowDownToLine, BarChart3, CalendarDays, ChevronDown, Cloud, Info, Layers3, ListFilter, LogOut, ScanLine, Search, SlidersHorizontal, Table2, Target, TrendingUp, type LucideIcon } from 'lucide-react'
+import { Link } from 'react-router'
+import { LoadingStatus } from '../../components/LoadingStatus'
 import { Picker } from '../../components/ui'
 import { demo } from '../../lib/supabase'
+import { routes } from '../../routes'
 import { TraitChart, TraitTable } from './TraitChart'
 import { exportMeasurements, formatSnapshot, groupTraits, indexLabel, segmentColors, sortOptions, type SortOrder } from './measurements'
 import { usePsychographics } from './usePsychographics'
@@ -11,7 +14,6 @@ import './psychographics.css'
 type Props = {
   email?: string
   onExit: () => void
-  onOpenCloud: () => void
   signOutPending: boolean
   authError: string
 }
@@ -23,7 +25,7 @@ const directions = [
   { value: 'zero', label: 'At baseline' },
 ]
 
-export default function Psychographics({ email, onExit, onOpenCloud, signOutPending, authError }: Props) {
+export default function Psychographics({ email, onExit, signOutPending, authError }: Props) {
   const { rows, loading, error, retry } = usePsychographics()
   const [dateChoice, setDateChoice] = useState('')
   const [segmentChoices, setSegmentChoices] = useState<string[]>([])
@@ -76,7 +78,7 @@ export default function Psychographics({ email, onExit, onOpenCloud, signOutPend
 
   return <div className="psy-workspace">
     <aside className="psy-sidebar">
-      <div className="psy-brand"><span><ScanLine size={21} /></span>CustomerPulse</div>
+      <Link className="psy-brand workspace-link" to={routes.home} aria-label="Workspace home"><span><ScanLine size={21} /></span>CustomerPulse</Link>
       <nav aria-label="Audience workspace">
         <span className="psy-nav-label">Workspace</span>
         <a className="psy-nav-active" href="#psychographics" aria-current="page"><Target size={17} />Psychographics</a>
@@ -85,9 +87,11 @@ export default function Psychographics({ email, onExit, onOpenCloud, signOutPend
     </aside>
     <main className="psy-main" id="psychographics">
       <header className="psy-topbar">
-        <div className="psy-breadcrumb">Audience analytics <span>/</span> <strong>Psychographics</strong></div>
+        <div className="psy-breadcrumb">
+          <Link className="workspace-link" to={routes.home}>Workspaces</Link><span>/</span><strong>Psychographics</strong>
+        </div>
         <div className="psy-account">
-          <button className="psy-text-button" onClick={onOpenCloud}><Cloud size={16} /> Cloud resources</button>
+          <Link className="psy-text-button workspace-link" to={routes.cloud}><Cloud size={16} /> CloudLedger</Link>
           {!demo && email && <span className="psy-email" title={email}>{email}</span>}
           <button className="psy-text-button" onClick={onExit} disabled={signOutPending}>
             <LogOut size={16} /> {demo ? 'Exit demo' : signOutPending ? 'Signing out…' : 'Sign out'}
@@ -108,7 +112,7 @@ export default function Psychographics({ email, onExit, onOpenCloud, signOutPend
         </div>
 
         {authError && <p className="psy-notice" role="alert">{authError}</p>}
-        {loading ? <section className="psy-card psy-notice" role="status">Loading psychographic data…</section>
+        {loading ? <LoadingStatus className="psy-card psy-notice" label="Loading psychographic data…" />
           : error || !rows.length ? <section className="psy-card psy-notice" role={error ? 'alert' : 'status'}>
             <strong>{error ? 'Couldn’t load psychographic data' : 'No psychographic rows returned by Supabase'}</strong>
             <p>{error || 'If the table contains rows, check the SELECT policy on public.psychographic_breakdown for your signed-in account.'}</p>

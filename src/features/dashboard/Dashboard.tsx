@@ -1,7 +1,10 @@
 import { lazy, Suspense, useState } from 'react'
 import { Activity, ArrowDownToLine, CalendarDays, Globe2, Layers3, LogOut, Target, Wallet, type LucideIcon } from 'lucide-react'
+import { Link } from 'react-router'
+import { LoadingStatus } from '../../components/LoadingStatus'
 import { Brand, Picker } from '../../components/ui'
 import { demo } from '../../lib/supabase'
+import { routes } from '../../routes'
 import { demoDate } from './demoResources'
 import { ResourceTable } from './ResourceTable'
 import { exportCsv, integer, isActive, money, resourceCreationTime, totalCost, type Resource } from './resources'
@@ -15,10 +18,9 @@ type Page = (typeof pages)[number]
 const periods = [3, 6, 12].map(value => ({ value: String(value), label: `Last ${value} months` }))
 const Charts = lazy(() => import('./Charts'))
 
-export default function Dashboard({ email, onExit, onOpenAudience, signOutPending, authError }: {
+export default function Dashboard({ email, onExit, signOutPending, authError }: {
   email?: string
   onExit: () => void
-  onOpenAudience: () => void
   signOutPending: boolean
   authError: string
 }) {
@@ -40,7 +42,7 @@ export default function Dashboard({ email, onExit, onOpenAudience, signOutPendin
   return <>
     <header className="topbar">
       <div className="shell header-inner">
-        <Brand onClick={() => navigate(overviewPage)} />
+        <Link className="workspace-link" to={routes.home} aria-label="Workspace home"><Brand /></Link>
         <nav aria-label="Main navigation">
           {pages.map(item => <button
             key={item.label}
@@ -51,7 +53,7 @@ export default function Dashboard({ email, onExit, onOpenAudience, signOutPendin
           </button>)}
         </nav>
         <div className="workspace">
-          <button className="button button-quiet session-button" onClick={onOpenAudience}><Target size={15} /> Psychographics</button>
+          <Link className="button button-quiet session-button workspace-link" to={routes.psychographics}><Target size={15} /> Psychographics</Link>
           {demo ? <span className="workspace-label"><i />Demo workspace</span>
             : email && <span className="account-email" title={email}>{email}</span>}
           <button className="button session-button" onClick={onExit} disabled={signOutPending}>
@@ -84,7 +86,7 @@ export default function Dashboard({ email, onExit, onOpenAudience, signOutPendin
         </div>
       </div>
       {authError && <p role="alert" className="feedback error">{authError}</p>}
-      {loading ? <div className="panel feedback" role="status">Loading cloud resources…</div>
+      {loading ? <LoadingStatus className="panel feedback" label="Loading cloud resources…" />
         : loadError ? <ResourceNotice title="Couldn’t load cloud resources" detail={loadError} onRetry={reload} error />
         : <>
           {overview && <ResourceSummary resources={resources} />}
@@ -93,7 +95,7 @@ export default function Dashboard({ email, onExit, onOpenAudience, signOutPendin
             detail="If the table contains rows, check that its SELECT policy allows your signed-in account to read them."
             onRetry={reload}
           />}
-          {showCharts && hasResources && <Suspense fallback={<div className="panel feedback" role="status">Loading charts…</div>}>
+          {showCharts && hasResources && <Suspense fallback={<LoadingStatus className="panel feedback" label="Loading charts…" />}>
             <Charts resources={resources} months={Number(months)} now={now} hasTrend={hasTrend} />
           </Suspense>}
           {(overview || page === resourcesPage) && <ResourceTable

@@ -2,14 +2,11 @@ import * as Select from '@radix-ui/react-select'
 import { Check, ChevronDown, Cloud } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-export function Brand({ onClick }: { onClick?: () => void }) {
-  const content = <>
+export function Brand() {
+  return <span className="brand">
     <span className="brand-mark"><Cloud size={21} strokeWidth={2.2} /></span>
     <span>CloudLedger<span className="brand-period">.</span></span>
-  </>
-  return onClick
-    ? <button className="brand" onClick={onClick} aria-label="CloudLedger home">{content}</button>
-    : <span className="brand">{content}</span>
+  </span>
 }
 
 export function Picker({ label, value, onChange, options, icon }: {
